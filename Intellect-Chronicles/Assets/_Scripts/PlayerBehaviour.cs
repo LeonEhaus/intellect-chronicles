@@ -26,6 +26,8 @@ public class InputSettings
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerBehaviour : MonoBehaviour
 {
+    public GameManager gamemanager;
+    protected bool paused;
     public MoveSettings moveSettings;
     public InputSettings inputSettings;
 
@@ -54,8 +56,11 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Run();
-        Jump();
+        if(!paused)
+        {
+            Run();
+            Jump();
+        }
     }
 
     private void GetInput()
@@ -98,4 +103,27 @@ public class PlayerBehaviour : MonoBehaviour
 
         isJumping = false;
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.CompareTag("Objective"))
+        {
+            other.gameObject.SetActive(false);
+            gamemanager.NextObjective();
+        }
+    }
+
+    void OnPauseGame()
+    {
+        paused = true;
+        playerRigidbody.isKinematic = true;
+    }
+
+
+    void OnResumeGame()
+    {
+        paused = false;
+        playerRigidbody.isKinematic = false;
+    }
+
 }
