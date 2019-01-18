@@ -7360,8 +7360,11 @@ MonoBehaviour:
   gamemanager: {fileID: 2018323844}
   moveSettings:
     runVelocity: 12
+    crouchVelocity: 8
     jumpVelocity: 8.5
+    cJumpVelocity: 7
     jumpForce: 55
+    cJumpForce: 48
     distanceToGround: 2.01
     gravity: 40
     jumpTime: 0.2
@@ -7402,9 +7405,10 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 1
   inputSettings:
-    FORWARD_AXIS: Vertical
+    VERTICAL_AXIS: Vertical
     SIDEWAY_AXIS: Horizontal
     JUMP_AXIS: Jump
+  crouching: 0
 --- !u!4 &1188491134 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 409034, guid: a4c18952442944083b1fddc06ba477c2,
@@ -8329,7 +8333,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.09
+  m_Radius: 0.07
   m_Center: {x: -1.075, y: 0.295, z: -0.18}
 --- !u!1 &4111788589525737030
 GameObject:

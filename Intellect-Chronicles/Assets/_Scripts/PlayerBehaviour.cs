@@ -6,8 +6,11 @@ using UnityEngine;
 public class MoveSettings
 {
     public float runVelocity = 12;
+    public float crouchVelocity = 8;
     public float jumpVelocity = 8;
+    public float cJumpVelocity = 7;
     public float jumpForce = 50 ;
+    public float cJumpForce = 48;
     public float distanceToGround = 1.01f;
     public float gravity = 40.0F;
     public float jumpTime = 0.2f;
@@ -18,7 +21,7 @@ public class MoveSettings
 [System.Serializable]
 public class InputSettings
 {
-    public string FORWARD_AXIS = "Vertical";
+    public string VERTICAL_AXIS = "Vertical";
     public string SIDEWAY_AXIS = "Horizontal";
     public string JUMP_AXIS = "Jump";
 }
@@ -33,8 +36,10 @@ public class PlayerBehaviour : MonoBehaviour
 
     private Rigidbody playerRigidbody;
     private Vector3 velocity;
-    private float forwardInput, sidewaysInput, jumpInput;
+    private float verticalInput, sidewaysInput, jumpInput;
     private bool isJumping = false;
+    public bool crouching = false;
+    private bool lastC= false;
 
     public bool Grounded()
     {
@@ -44,14 +49,26 @@ public class PlayerBehaviour : MonoBehaviour
     private void Awake()
     {
         velocity = Vector3.zero;
-        forwardInput = sidewaysInput = jumpInput = 0.0f;
+        verticalInput = sidewaysInput = jumpInput = 0.0f;
         playerRigidbody = gameObject.GetComponent<Rigidbody>();
     }
 
     private void Update()
     {
         Physics.gravity = new Vector3(0.0F, -moveSettings.gravity, 0.0F);
-        GetInput();    
+        GetInput();
+        if(lastC != crouching) //temp crouching visual solution
+        {
+            if (crouching)
+            {
+                this.transform.localScale = new Vector3(1, 1.7f, 1);
+            }
+            else
+            {
+                this.transform.localScale = new Vector3(1, 2, 1);
+            }
+        }
+        lastC = crouching;
     }
 
     private void FixedUpdate()
@@ -65,14 +82,15 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void GetInput()
     {
-        if(inputSettings.FORWARD_AXIS.Length != 0) forwardInput = Input.GetAxis(inputSettings.FORWARD_AXIS);
+        if(inputSettings.VERTICAL_AXIS.Length != 0) verticalInput = Input.GetAxis(inputSettings.VERTICAL_AXIS);
         if (inputSettings.SIDEWAY_AXIS.Length != 0) sidewaysInput = Input.GetAxis(inputSettings.SIDEWAY_AXIS);
         if (inputSettings.JUMP_AXIS.Length != 0) jumpInput = Input.GetAxisRaw(inputSettings.JUMP_AXIS);
+        crouching = (verticalInput<0);
     }
 
     private void Run()
     {
-        velocity.x = sidewaysInput * moveSettings.runVelocity;
+        velocity.x = sidewaysInput * (crouching ? moveSettings.crouchVelocity : moveSettings.runVelocity);
         velocity.y = playerRigidbody.velocity.y;
         playerRigidbody.velocity = transform.TransformDirection(velocity);
     }
@@ -89,16 +107,29 @@ public class PlayerBehaviour : MonoBehaviour
 
     IEnumerator JumpRoutine()
     {
-        playerRigidbody.velocity = new Vector3 (playerRigidbody.velocity.x, moveSettings.jumpVelocity, playerRigidbody.velocity.z);
+        playerRigidbody.velocity = new Vector3 (playerRigidbody.velocity.x, (crouching ? moveSettings.cJumpVelocity : moveSettings.jumpVelocity), playerRigidbody.velocity.z);
         float timer = 0;
-
-        while (jumpInput != 0 && timer < moveSettings.jumpTime)
+        if (crouching)
         {
-            float proportionCompleted = timer / moveSettings.jumpTime;
-            Vector3 thisFrameJumpVector = Vector3.Lerp(new Vector3(0, moveSettings.jumpForce, 0), Vector3.zero, moveSettings.forceTime.Evaluate(proportionCompleted));
-            playerRigidbody.AddForce(thisFrameJumpVector);
-            timer += Time.deltaTime;
-            yield return null;
+            while (jumpInput != 0 && timer < moveSettings.jumpTime)
+            {
+                float proportionCompleted = timer / moveSettings.jumpTime;
+                Vector3 thisFrameJumpVector = Vector3.Lerp(new Vector3(0, moveSettings.cJumpForce, 0), Vector3.zero, moveSettings.forceTime.Evaluate(proportionCompleted));
+                playerRigidbody.AddForce(thisFrameJumpVector);
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            while (jumpInput != 0 && timer < moveSettings.jumpTime)
+            {
+                float proportionCompleted = timer / moveSettings.jumpTime;
+                Vector3 thisFrameJumpVector = Vector3.Lerp(new Vector3(0, moveSettings.jumpForce, 0), Vector3.zero, moveSettings.forceTime.Evaluate(proportionCompleted));
+                playerRigidbody.AddForce(thisFrameJumpVector);
+                timer += Time.deltaTime;
+                yield return null;
+            }
         }
 
         isJumping = false;
