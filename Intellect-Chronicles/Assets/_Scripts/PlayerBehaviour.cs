@@ -55,20 +55,23 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void Update()
     {
-        Physics.gravity = new Vector3(0.0F, -moveSettings.gravity, 0.0F);
-        GetInput();
-        if(lastC != crouching) //temp crouching visual solution
+        if(!paused)
         {
-            if (crouching)
+            Physics.gravity = new Vector3(0.0F, -moveSettings.gravity, 0.0F);
+            GetInput();
+            if (lastC != crouching) //temp crouching visual solution
             {
-                this.transform.localScale = new Vector3(1, 1.7f, 1);
+                if (crouching)
+                {
+                    this.transform.localScale = new Vector3(1, 1.7f, 1);
+                }
+                else
+                {
+                    this.transform.localScale = new Vector3(1, 2, 1);
+                }
             }
-            else
-            {
-                this.transform.localScale = new Vector3(1, 2, 1);
-            }
+            lastC = crouching;
         }
-        lastC = crouching;
     }
 
     private void FixedUpdate()
@@ -141,6 +144,14 @@ public class PlayerBehaviour : MonoBehaviour
         {
             other.gameObject.SetActive(false);
             gamemanager.NextObjective();
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.CompareTag("EnemyHearing") && !crouching)
+        {
+            gamemanager.DetectedByEnemy(gameObject);
         }
     }
 
