@@ -18,11 +18,55 @@ public class GameManager : MonoBehaviour
     private bool InDialogue, PersonABefore, PersonBBefore;
     private int detectedStage;
 
+
+
+    public string[] endDialogueText;
+    public GameObject[] endChars;
+    public string nextScene;
+    private int endDialogueIndex = 0;
+    private bool InEndDialogue;
+
     private void Start()
     {
         PauseGane();
         NextDialogue();
         detectedStage= 0;
+    }
+
+    public void endLevel()
+    {
+        PersonA.SetActive(false);
+        if (endDialogueText == null || endChars == null)
+        {
+            PauseGane();
+            SceneManager.LoadScene(nextScene);
+        }
+        else
+        {
+            PauseGane();
+            foreach (GameObject o in endChars)
+            {
+                o.SetActive(true);
+            }
+            DialogPanel.SetActive(true);
+            endDialogue();
+        }
+    }
+
+    public void endDialogue()
+    {
+        if (endDialogueIndex >= endDialogueText.Length || endDialogueText[endDialogueIndex] == null || endDialogueText[endDialogueIndex] == "")
+        {
+            Debug.Log("End of Dialogue");
+            endDialogueIndex++;
+            InEndDialogue = false;
+            SceneManager.LoadScene(nextScene);
+        }
+        else
+        {
+            InEndDialogue = true;
+            Dialogue.text = endDialogueText[endDialogueIndex++];
+        }
     }
 
     int stage = 0;
@@ -60,7 +104,8 @@ public class GameManager : MonoBehaviour
                 NextDialogue();
                 break;
             case 7:
-                SceneManager.LoadScene("Menu");
+                ResumeGame();
+                SceneManager.LoadScene("Level2");
                 break;
             default:
                 break;
@@ -141,7 +186,14 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(InDialogue)
+        if (InEndDialogue)
+        {
+            if (Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
+            {
+                endDialogue();
+            }
+        }
+        else if(InDialogue)
         {
             if(Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
             {

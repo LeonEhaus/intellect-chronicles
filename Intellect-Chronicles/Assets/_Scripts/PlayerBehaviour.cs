@@ -145,6 +145,11 @@ public class PlayerBehaviour : MonoBehaviour
             other.gameObject.SetActive(false);
             gamemanager.NextObjective();
         }
+        else if (other.gameObject.CompareTag("Finish"))
+        {
+
+            gamemanager.endLevel();
+        }
     }
 
     private void OnTriggerStay(Collider other)
