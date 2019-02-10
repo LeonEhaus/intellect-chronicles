@@ -1,4 +1,4 @@
-﻿    using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public GameObject PersonB;
     public Text Dialogue;
     public GameObject Door;
-    public Vector3 Savepoint= new Vector3(25, 2, 1);
+    public Vector3 Savepoint = new Vector3(25, 2, 1);
 
     private int dialogueIndex = 0;
     public string[] dialogueText;
@@ -28,9 +28,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        PauseGane();
+        PauseGame();
         NextDialogue();
-        detectedStage= 0;
+        detectedStage = 0;
     }
 
     public void endLevel()
@@ -38,12 +38,12 @@ public class GameManager : MonoBehaviour
         PersonA.SetActive(false);
         if (endDialogueText == null || endChars == null)
         {
-            PauseGane();
+            PauseGame();
             SceneManager.LoadScene(nextScene);
         }
         else
         {
-            PauseGane();
+            PauseGame();
             foreach (GameObject o in endChars)
             {
                 o.SetActive(true);
@@ -69,6 +69,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    int interactableIndex = 0;
+    private string[] tempInteract;
+    public void interactableText(string[] interactableDialogue)
+    {
+        PauseGame();
+        PersonABefore = PersonA.activeSelf;
+        if(PersonB != null)
+        {
+            PersonBBefore = PersonB.activeSelf;
+            PersonB.SetActive(false);
+        }
+        PersonA.SetActive(true);
+        DialogPanel.SetActive(true);
+        tempInteract = interactableDialogue;
+        nextInteractableText();
+    }
+
+    public void nextInteractableText()
+    {
+        if (tempInteract == null || interactableIndex == tempInteract.Length)
+        {
+            interactableIndex = 0;
+            tempInteract = null;
+            PersonA.SetActive(PersonABefore);
+            if (PersonB != null)
+            {
+                PersonB.SetActive(PersonBBefore);
+            }
+            DialogPanel.SetActive(false);
+            ResumeGame();
+        }
+        else
+        {
+            Dialogue.text = tempInteract[interactableIndex++];
+        }
+    }
+
     int stage = 0;
     public void NextObjective()
     {
@@ -79,7 +116,7 @@ public class GameManager : MonoBehaviour
                 ResumeGame();
                 break;
             case 2:
-                PauseGane();
+                PauseGame();
                 DialogPanel.SetActive(true);
                 PersonB.SetActive(false);
                 NextDialogue();
@@ -90,7 +127,7 @@ public class GameManager : MonoBehaviour
                 ResumeGame();
                 break;
             case 4:
-                PauseGane();
+                PauseGame();
                 DialogPanel.SetActive(true);
                 NextDialogue();
                 break;
@@ -99,7 +136,7 @@ public class GameManager : MonoBehaviour
                 ResumeGame();
                 break;
             case 6:
-                PauseGane();
+                PauseGame();
                 DialogPanel.SetActive(true);
                 NextDialogue();
                 break;
@@ -112,7 +149,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void PauseGane()
+    private void PauseGame()
     {
         Object[] objects = FindObjectsOfType(typeof(GameObject));
         foreach (GameObject go in objects)
@@ -132,7 +169,7 @@ public class GameManager : MonoBehaviour
 
     public void NextDialogue()
     {
-        if(dialogueIndex>=dialogueText.Length || dialogueText[dialogueIndex]==null || dialogueText[dialogueIndex] == "")
+        if (dialogueIndex >= dialogueText.Length || dialogueText[dialogueIndex] == null || dialogueText[dialogueIndex] == "")
         {
             Debug.Log("End of Dialogue");
             dialogueIndex++;
@@ -160,9 +197,9 @@ public class GameManager : MonoBehaviour
         switch (detectedStage)
         {
             case 3:
-                PauseGane();
+                PauseGame();
                 PersonABefore = PersonA.activeSelf;
-                PersonBBefore= PersonB.activeSelf;
+                PersonBBefore = PersonB.activeSelf;
                 PersonA.SetActive(true);
                 PersonB.SetActive(false);
                 DialogPanel.SetActive(true);
@@ -186,25 +223,25 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (InEndDialogue)
+        if (Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
         {
-            if (Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
+
+            if (InEndDialogue)
             {
                 endDialogue();
+
             }
-        }
-        else if(InDialogue)
-        {
-            if(Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
+            else if (InDialogue)
             {
                 NextDialogue();
             }
-        }
-        else if(detectedStage != 0)
-        {
-            if (Input.GetKeyDown("space") || Input.GetMouseButtonDown(0))
+            else if (detectedStage != 0)
             {
                 detectionText();
+            }
+            else if (interactableIndex != 0)
+            {   
+                nextInteractableText();
             }
         }
     }

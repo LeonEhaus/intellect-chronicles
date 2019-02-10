@@ -35,24 +35,19 @@ public class PlayerBehaviour : MonoBehaviour
     protected bool paused;
     public MoveSettings moveSettings;
     public InputSettings inputSettings;
+    public BoxCollider boxCollider;
+    public GameObject mesh;
 
     private Rigidbody playerRigidbody;
     private Vector3 velocity;
     private float verticalInput, sidewaysInput, jumpInput;
     private bool isJumping = false;
-    public bool crouching = false;
+    public bool crouching = false;  
     private bool lastC= false;
 
     public bool Grounded()
     {
-        RaycastHit raycastHit;
-        Ray ray = new Ray(transform.position, Vector3.down);
-        Physics.Raycast(ray, out raycastHit, moveSettings.distanceToGround);
-        Debug.DrawRay(transform.position, Vector3.down * moveSettings.distanceToGround, Color.magenta);
-        Debug.Log("Collider Hit: " + (raycastHit.collider !=  null));
-        return raycastHit.collider !=  null;
-        return true;
-
+        return Physics.Raycast(transform.position + new Vector3(0, 0.1f, 0), Vector3.down, moveSettings.distanceToGround, moveSettings.ground);
     }
 
     private void Awake()
@@ -64,27 +59,30 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void Update()
     {
-        if(!paused)
+        if (!paused)
         {
             Physics.gravity = new Vector3(0.0F, -moveSettings.gravity, 0.0F);
             GetInput();
-            //if (lastC != crouching) //temp crouching visual solution
-            //{
-            //    if (crouching)
-            //    {
-            //        this.transform.localScale = new Vector3(1, 1.7f, 1);
-            //    }
-            //    else
-            //    {
-            //        this.transform.localScale = new Vector3(1, 2, 1);
-            //    }
-            //}
-            //lastC = crouching;
+
             animator.SetBool("Grounded", Grounded());
             animator.SetBool("crouching", crouching);
+
+            if(crouching)
+            {
+                boxCollider.size = new Vector3(0.6f, 1.1f, 0.9f);
+                boxCollider.center = new Vector3(0, 0.55f, 0.15f);
+            }
+            else
+            {
+                boxCollider.center = new Vector3(0, 0.96f, 0);
+                boxCollider.size = new Vector3(0.6f, 1.89f, 0.5f);
+            }
+
             animator.SetBool("walking", Input.GetAxis(inputSettings.SIDEWAY_AXIS) != 0);
+            mesh.transform.eulerAngles = new Vector3(0, Input.GetAxis(inputSettings.SIDEWAY_AXIS) < 0 ? 270 : 90, 0);
         }
-        
+
+
     }
 
     private void FixedUpdate()
@@ -119,7 +117,6 @@ public class PlayerBehaviour : MonoBehaviour
             animator.SetTrigger("jump");
             isJumping = true;
             StartCoroutine(JumpRoutine());
-            //playerRigidbody.velocity = new Vector3(playerRigidbody.velocity.x, moveSettings.jumpVelocity, playerRigidbody.velocity.z);
         }
     }
 
@@ -165,6 +162,18 @@ public class PlayerBehaviour : MonoBehaviour
 
             gamemanager.endLevel();
         }
+        else if (other.gameObject.CompareTag("Interactable"))
+        {
+            other.gameObject.GetComponent<ActionText>().enableHalo();
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("Interactable"))
+        {
+            other.gameObject.GetComponent<ActionText>().deactivateHalo();
+        }
     }
 
     private void OnTriggerStay(Collider other)
@@ -173,12 +182,20 @@ public class PlayerBehaviour : MonoBehaviour
         {
             gamemanager.DetectedByEnemy(gameObject);
         }
+        if(other.gameObject.CompareTag("Interactable"))
+        {
+            if(Input.GetButtonDown("Interact"))
+            {
+                gamemanager.interactableText(other.gameObject.GetComponent<ActionText>().getText());
+            }
+        }
     }
 
     void OnPauseGame()
     {
         paused = true;
         playerRigidbody.isKinematic = true;
+        animator.enabled = false;
     }
 
 
@@ -186,6 +203,7 @@ public class PlayerBehaviour : MonoBehaviour
     {
         paused = false;
         playerRigidbody.isKinematic = false;
+        animator.enabled = true;
     }
 
 }
