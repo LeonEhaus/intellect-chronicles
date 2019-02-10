@@ -591,6 +591,7 @@ PlayerSettings:
       daydreamIconForeground: {fileID: 0}
       daydreamIconBackground: {fileID: 0}
   cloudServicesEnabled:
+    Collab: 0
     UNet: 1
   luminIcon:
     m_Name: 
@@ -611,10 +612,10 @@ PlayerSettings:
   facebookXfbml: 0
   facebookFrictionlessRequests: 1
   apiCompatibilityLevel: 6
-  cloudProjectId: 10de9113-1d94-4688-9309-7210dfb6dce1
+  cloudProjectId: 5aebda03-dbc5-4a55-a1a3-fe0b11088bd7
   framebufferDepthMemorylessMode: 0
   projectName: Intellect-Chronicles
-  organizationId: flyinghelix
+  organizationId: leon_ehaus
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0
