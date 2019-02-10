@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Objective
   - EnemyHearing
+  - Ground
   layers:
   - Default
   - TransparentFX

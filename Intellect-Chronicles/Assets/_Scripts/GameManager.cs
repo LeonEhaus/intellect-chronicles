@@ -148,7 +148,7 @@ public class GameManager : MonoBehaviour
 
     public void DetectedByEnemy(GameObject player)
     {
-        player.transform.SetPositionAndRotation(Savepoint, Quaternion.identity);
+        player.transform.SetPositionAndRotation(Savepoint, transform.rotation);
         detectedStage = 3;
         detectionText();
 

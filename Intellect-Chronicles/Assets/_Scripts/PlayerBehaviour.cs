@@ -29,6 +29,8 @@ public class InputSettings
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerBehaviour : MonoBehaviour
 {
+    public Animator animator;
+
     public GameManager gamemanager;
     protected bool paused;
     public MoveSettings moveSettings;
@@ -43,7 +45,14 @@ public class PlayerBehaviour : MonoBehaviour
 
     public bool Grounded()
     {
-        return Physics.Raycast(transform.position, Vector3.down, moveSettings.distanceToGround, moveSettings.ground);
+        RaycastHit raycastHit;
+        Ray ray = new Ray(transform.position, Vector3.down);
+        Physics.Raycast(ray, out raycastHit, moveSettings.distanceToGround);
+        Debug.DrawRay(transform.position, Vector3.down * moveSettings.distanceToGround, Color.magenta);
+        Debug.Log("Collider Hit: " + (raycastHit.collider !=  null));
+        return raycastHit.collider !=  null;
+        return true;
+
     }
 
     private void Awake()
@@ -59,19 +68,23 @@ public class PlayerBehaviour : MonoBehaviour
         {
             Physics.gravity = new Vector3(0.0F, -moveSettings.gravity, 0.0F);
             GetInput();
-            if (lastC != crouching) //temp crouching visual solution
-            {
-                if (crouching)
-                {
-                    this.transform.localScale = new Vector3(1, 1.7f, 1);
-                }
-                else
-                {
-                    this.transform.localScale = new Vector3(1, 2, 1);
-                }
-            }
-            lastC = crouching;
+            //if (lastC != crouching) //temp crouching visual solution
+            //{
+            //    if (crouching)
+            //    {
+            //        this.transform.localScale = new Vector3(1, 1.7f, 1);
+            //    }
+            //    else
+            //    {
+            //        this.transform.localScale = new Vector3(1, 2, 1);
+            //    }
+            //}
+            //lastC = crouching;
+            animator.SetBool("Grounded", Grounded());
+            animator.SetBool("crouching", crouching);
+            animator.SetBool("walking", Input.GetAxis(inputSettings.SIDEWAY_AXIS) != 0);
         }
+        
     }
 
     private void FixedUpdate()
@@ -81,6 +94,7 @@ public class PlayerBehaviour : MonoBehaviour
             Run();
             Jump();
         }
+        
     }
 
     private void GetInput()
@@ -93,7 +107,7 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void Run()
     {
-        velocity.x = sidewaysInput * (crouching ? moveSettings.crouchVelocity : moveSettings.runVelocity);
+        velocity.z = sidewaysInput * (crouching ? moveSettings.crouchVelocity : moveSettings.runVelocity);
         velocity.y = playerRigidbody.velocity.y;
         playerRigidbody.velocity = transform.TransformDirection(velocity);
     }
@@ -102,6 +116,7 @@ public class PlayerBehaviour : MonoBehaviour
     {
         if (jumpInput != 0 && Grounded() && !isJumping)
         {
+            animator.SetTrigger("jump");
             isJumping = true;
             StartCoroutine(JumpRoutine());
             //playerRigidbody.velocity = new Vector3(playerRigidbody.velocity.x, moveSettings.jumpVelocity, playerRigidbody.velocity.z);
